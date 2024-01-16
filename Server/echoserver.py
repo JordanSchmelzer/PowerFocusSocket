@@ -2,7 +2,7 @@ import socket
 import logging
 
 HOST = "127.0.0.1"
-PORT = 8080
+PORT = 4545
 
 try:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

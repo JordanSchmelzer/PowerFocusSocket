@@ -39,38 +39,52 @@ A -(UDP)----- B
 """
 
 import socket
+import threading
 
-HOST = "0.0.0.0"
-# 192.168.0.#    // other examples
-# 172.#.#.#
-PORT = 1337
-# pick stuff thats not commonly used (low numbers)
-# the client and the server port have to be the same
+# returns one of the kinds of local IPs
+HOST = socket.gethostbyname(socket.gethostname())
+PORT = 4545
+ADDR = (HOST, PORT)  # assign a tuple
+HEADER = 64
+FORMAT = "ascii"
+DISCONNECT_MESSAGE = "!DISCONNECT"
 
 # this is a TCP Socket
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # server is just used for accepting connections. It doest talk to clients
-server.bind((HOST, PORT))  # assign a tuple
-# To make it a server, we have to bind() this to a HOST and a PORT
+# # To make it a server, we have to bind() this to a HOST and a PORT
 # always have to specify a private (local) IP Address
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(ADDR)
+# server.listen(5) # before rejecting connections.
 
-server.listen(5)  # how many connections to accept before rejecting connections.
-# optional
 
-# endless loop
-while True:
-    communication_socket, address = server.accept()
-    # when the server.accept method triggers
-    # returns address of the client making the connection
-    # and a socket that we can use to talk to the client
-    # NOTE: we do not use the server variable to talk to client, it needs to be the object from accept()
-    print(f"Connected to {address}")
-    message = communication_socket.recv(1024).decode("ascii")
-    # we have to decode the string
-    # client server have to speak the same language
-    print(f"Message from client is: {message}")
-    communication_socket.send(f"my data from the MID... blah blah blah").encode("ascii")
-    # this is probably whats happening
-    communication_socket.close()
-    # optional, can leave alive to send messages
-    print(f"Connection with {address} ended!")
+def handle_client(conn, addr):
+    print(f"[NEW CONNECTION] {addr} connected.")
+
+    connected = True
+    while connected:
+        msg_length = conn.rcv(HEADER).decode(FORMAT)  # blocking
+        if msg_length:  # if not none
+            msg_length = int(msg_length)
+            msg = conn.recv(msg_length).decode(FORMAT)
+            if msg == DISCONNECT_MESSAGE:
+                connected = False
+
+            print(f"[{addr}] {msg}")
+
+    conn.close()
+
+
+def start():
+    server.listen()
+    print(f"[LISTENING] Server is listening on {HOST}")
+    while True:
+        conn, addr = server.accept()  # blocking
+        thread = threading.Thread(target=handle_client, args=(conn, addr))
+        thread.start()
+        print(f"[ACTIVE CONNECTIOINS] {threading.active_count() - 1}")
+
+
+print("[STARTING] server is starting...")
+print(f"[STARTING] host: {HOST}, port: {PORT}")
+start()

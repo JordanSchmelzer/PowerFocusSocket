@@ -57,13 +57,16 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 # server.listen(5) # before rejecting connections.
 
+# NOTE: Its possible to connect clients through this server. Client A can see Client B
+# youd have to do a global message list where you can see queues and stuff. its complicated but powerful
+
 
 def handle_client(conn, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
 
     connected = True
     while connected:
-        msg_length = conn.rcv(HEADER).decode(FORMAT)  # blocking
+        msg_length = conn.recv(HEADER).decode(FORMAT)  # blocking
         if msg_length:  # if not none
             msg_length = int(msg_length)
             msg = conn.recv(msg_length).decode(FORMAT)
@@ -71,6 +74,7 @@ def handle_client(conn, addr):
                 connected = False
 
             print(f"[{addr}] {msg}")
+            conn.send("Msg recieved".encode(FORMAT))
 
     conn.close()
 

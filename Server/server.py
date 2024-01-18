@@ -41,6 +41,7 @@ A -(UDP)----- B
 import socket
 import threading
 
+
 # returns one of the kinds of local IPs
 HOST = socket.gethostbyname(socket.gethostname())
 PORT = 4545
@@ -68,7 +69,7 @@ def handle_client(conn, addr):
     while connected:
         msg_length = conn.recv(HEADER).decode(FORMAT)  # blocking
         if msg_length:  # if not none
-            msg_length = int(msg_length)
+            msg_length = int(msg_length[:4])
             msg = conn.recv(msg_length).decode(FORMAT)
             if msg == DISCONNECT_MESSAGE:
                 connected = False

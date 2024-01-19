@@ -1,18 +1,21 @@
 import socket
 import logging
 import time
-import os
-from sys import platform
+from utils.leftpad import leftpad
+from utils.screen_clear import screen_clear
+from mids.mids import *
 
-# import pickle # a way to send objects to the server that it can then use to do stuff
-# pretty cool, serializes the object and sends bytes. what can you do with that?
+print("[CLIENT] Starting... Open Protocol Pset Extract")
+msg_handler = AppMessageCodex()
+
 
 HEADER = 64
 PORT = 4545
 FORMAT = "ascii"
-DISCONNECT_MESSAGE = "!DISCONNECT"
+DISCONNECT_MESSAGE = msg_handler.MID3()
 HOST = "10.0.0.124"
 ADDR = (HOST, PORT)
+
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 
@@ -26,17 +29,6 @@ def send(message):
     # client.send(send_len)
     client.send(msg)
     print(client.recv(1024).decode(FORMAT))
-
-
-def leftpad(str: str, final_size: int, fill_char: str):
-    if str.__len__ > final_size:
-        logging.fatal(
-            f"[FATAL] input {str} length is larger than final size {final_size}"
-        )
-        return
-
-    padded_string = fill_char * (final_size - str.__len__) + str
-    return padded_string
 
 
 def integrator_msg(mid, rev, data=""):
@@ -57,47 +49,11 @@ def integrator_msg(mid, rev, data=""):
     return header + leftpad(data, 3, 0) + chr(0)
 
 
-def screen_clear():
-    if platform == "linux" or platform == "linux2":
-        # linux
-        os.system("clear")
-    elif platform == "darwin":
-        # OSX
-        os.system("clear")
-    elif platform == "win32":
-        # windows
-        os.system("cls")
-    else:  # OS niet herkend!
-        print("Operating System not regconized!")
-
-
-# communication start
-def MID1():
-    return "00200001003         " + chr(0)
-
-
-# communication stop
-def MID3():
-    return "00200003            " + chr(0)
-
-
-# get pset
-def MID12(pset: int):
-    return "00230012            " + leftpad(str(pset), 3, "0") + chr(0)
-
-
-# pset request response
-def MID0013():
-    return "hello world"
-
-
 # main program
-send("Hello Powerfocus!" + chr(0))
-
-client.sendall(MID1().encode(FORMAT))
+client.sendall(MID1().encode(FORMAT))  # communication start
 response = client.recv(1024).decode(FORMAT)
 response_MID = response[4:8]
-time.sleep(0.5)
+time.sleep(1)
 
 if response_MID == "0002":
     print("[CLIENT]: I'm connected to the controller!")
@@ -108,8 +64,6 @@ while connection:
     user_input = input()
     if user_input == "quit":
         connection = False
-        send(MID3())
-        # screen_clear()
 
     if user_input:
         send(user_input)
@@ -134,3 +88,4 @@ while connection:
         )
 
 send(DISCONNECT_MESSAGE)
+# screen_clear()

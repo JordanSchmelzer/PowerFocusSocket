@@ -1,0 +1,21 @@
+{
+    {
+        "message_length": "0000",
+        "mid": "0000",
+        "revision": "   ",
+        "ack_flag": " ",
+        "station_id": "  ",
+        "spindle_id": "  ",
+        "spare": "    ",
+        "param_set_id": "000",
+        "param_set_name": "02",
+        "rotation_direction": "0",
+        "batch_size": "",
+        "torque_min": "",
+        "torque_max": "",
+        "torque_final_target": "",
+        "angle_min": "",
+        "angle_max": "",
+        "final_angle_target": ""
+    }
+}

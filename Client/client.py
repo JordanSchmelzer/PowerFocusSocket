@@ -2,7 +2,7 @@
 
 """
 
-import logging, time, socket
+import logging, time, socket, os
 from utils.leftpad import leftpad
 from utils.screen_clear import screen_clear
 from mids.mids import *
@@ -23,13 +23,15 @@ msg_handler = AppMessageCodex()
 
 FORMAT = "ascii"
 DISCONNECT_MESSAGE = msg_handler.MID3()
+DEFAULT_PORT = 4545
 
 print("Enter IP Address to connect to:")
 host = "10.0.0.124"
-port = 4545
-print(host + " -port" + port)
+port = DEFAULT_PORT
 
-ADDR = (host, port)
+print(host + " -port" + DEFAULT_PORT)
+
+ADDR = (host, DEFAULT_PORT)
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
@@ -66,20 +68,33 @@ while connection:
             host = input()
             print(f"host = {host}")
             # kill existing client
+            client.close()
             # create chagne target addr of client obj
+            client.connect((host, int(port)))
             # send mid1 to establish connection
+            client.send(msg_handler.MID1().encode(FORMAT))
             # make sure connetion is good
-            # continue w/ script
+            response = client.recv(1024).decode(FORMAT)
+            if response[4:8] == "0040":
+                print("connected to new host / port")
+            else:
+                pass
 
         if user_input[:4] == "port":
             print("set port ip address")
             port = input()
             print(f"port = {port}")
             # kill existing client
+            client.close()
             # create chagne target addr of client obj
+            client.connect((host, int(port)))
             # send mid1 to establish connection
+            client.send(msg_handler.MID1().encode(FORMAT))
             # make sure connetion is good
-            # continue w/ script
+            if response[4:8] == "0004":
+                print("connected to new host / port")
+            else:
+                pass
 
         if user_input and not user_input == "help":
             pset_index_pos = 0
